@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-25",
+  "python_protocol_tests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "js_python_inference_parity": {
+    "scenarios_passed": 7,
+    "max_prediction_difference_c": 1.7642974853515625e-05,
+    "max_relative_feature_difference": 1.1803557639486772e-07
+  },
+  "csv_export": {
+    "validated_rows": 544,
+    "injected_drift_samples": 60,
+    "silent_error_oracle_mask": false
+  },
+  "json_export": {
+    "validated_profile_id": 47,
+    "scenario": "bias",
+    "targets": 4
+  },
+  "browser_checked": [
+    "local server launch",
+    "measured profile replay",
+    "component switching",
+    "sensor scenario controls",
+    "benchmark table",
+    "model explanation",
+    "play and pause",
+    "timeline seeking",
+    "CSV download",
+    "JSON download"
+  ],
+  "standalone": "All assets embedded; inline scripts compile; all 15 profiles and model weights present. Direct file-URL automation was not permitted, so use the browser-tested Python launcher if file workers are blocked.",
+  "runtime_dependencies": "Python standard library for the server; browser for inference. Machine-learning packages only needed for retraining.",
+  "retraining_fixture_regression": "Training export preserves all seven inference parity scenarios."
+}

@@ -1,0 +1,27 @@
+Profile split: {'train': [75, 29, 44, 66, 6, 74, 52, 31, 20, 9, 73, 19, 49, 81, 71, 56, 54, 7, 3, 24, 79, 36, 60, 32, 76, 23, 67, 62, 4, 69, 41, 30, 45, 27], 'validation': [51, 17, 11, 43, 63, 18, 72], 'calibration': [5, 46, 42, 12, 68, 80, 8, 50, 70, 13, 64, 53, 58], 'test': [26, 21, 47, 2, 59, 61, 57, 14, 65, 55, 16, 15, 48, 78, 10]}
+Clean-trained baseline: epoch 1, validation MAE 7.424 C, best 7.424
+Clean-trained baseline: epoch 11, validation MAE 2.899 C, best 2.899
+Clean-trained baseline: epoch 21, validation MAE 2.462 C, best 2.462
+Clean-trained baseline: epoch 31, validation MAE 2.318 C, best 2.293
+Clean-trained baseline: epoch 41, validation MAE 2.252 C, best 2.177
+Clean-trained baseline: epoch 51, validation MAE 2.164 C, best 2.159
+Clean-trained baseline: epoch 61, validation MAE 2.176 C, best 2.118
+Clean-trained baseline complete: 2.084 C in 5.1s
+Fault-trained member 1: epoch 1, validation MAE 3.554 C, best 3.554
+Fault-trained member 1: epoch 11, validation MAE 2.117 C, best 2.117
+Fault-trained member 1: epoch 21, validation MAE 2.069 C, best 2.069
+Fault-trained member 1: epoch 31, validation MAE 2.007 C, best 2.002
+Fault-trained member 1: epoch 37, validation MAE 2.061 C, best 2.002
+Fault-trained member 1 complete: 2.002 C in 8.7s
+Fault-trained member 2: epoch 1, validation MAE 3.706 C, best 3.706
+Fault-trained member 2: epoch 11, validation MAE 2.226 C, best 2.195
+Fault-trained member 2: epoch 21, validation MAE 2.233 C, best 2.146
+Fault-trained member 2: epoch 22, validation MAE 2.184 C, best 2.146
+Fault-trained member 2 complete: 2.146 C in 4.9s
+Fault-trained member 3: epoch 1, validation MAE 3.671 C, best 3.671
+Fault-trained member 3: epoch 11, validation MAE 2.061 C, best 2.061
+Fault-trained member 3: epoch 21, validation MAE 2.107 C, best 2.030
+Fault-trained member 3: epoch 22, validation MAE 2.046 C, best 2.030
+Fault-trained member 3 complete: 2.030 C in 6.0s
+Empirical 90% upper multipliers: [0.75674134 1.0485528  0.82026976 0.7383766 ]
+Complete. Clean robust MAE per component: [3.3895153363545734, 1.6043167471885682, 1.435783729950587, 1.0797253131866456]
