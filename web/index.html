@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ThermoGuard Motor: local neural estimation of EV motor temperatures with measured data and sensor-fault replay.">
+  <title>ThermoGuard Motor</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#"><span class="brand-symbol">T<span>°</span></span><span>THERMOGUARD<small>MOTOR INTELLIGENCE</small></span></a>
+      <div class="sidebar-caption">EXPERIMENT CONTROL</div>
+      <label class="field-label" for="profile">Measured drive profile</label>
+      <select id="profile" aria-label="Measured drive profile"><option>Loading measured profiles…</option></select>
+      <div class="profile-info" id="profile-info">Whole-profile test holdout</div>
+      <label class="field-label" for="scenario">Sensor condition</label>
+      <select id="scenario"><option value="clean">Healthy sensors</option><option value="dropout" selected>Reported sensor dropout</option><option value="combined">Two-channel dropout</option><option value="bias">Silent sensor drift</option><option value="stuck">Silent stuck reading</option></select>
+      <label class="field-label" for="channel">Affected signal</label>
+      <select id="channel"><option value="5">Coolant temperature</option><option value="3">q-axis voltage</option><option value="2">d-axis voltage</option></select>
+      <div class="slider-label"><label for="start">Event position</label><output id="start-label">45%</output></div>
+      <input id="start" type="range" min="10" max="80" value="45" step="5">
+      <div class="slider-label"><label for="duration">Event duration</label><output id="duration-label">120 s</output></div>
+      <input id="duration" type="range" min="10" max="600" value="120" step="10">
+      <div id="bias-controls" hidden><div class="slider-label"><label for="bias">Final drift</label><output id="bias-label">+10 °C</output></div><input id="bias" type="range" min="-20" max="20" value="10" step="1"></div>
+      <button id="run" class="button-primary">Run experiment <span>↗</span></button>
+      <p class="sidebar-note">Input faults are injected into measured recordings. Internal temperatures stay hidden from the estimator.</p>
+      <div class="sidebar-bottom"><span class="connection-dot"></span> LOCAL / OFFLINE INFERENCE<small>No cloud service. No account required.</small></div>
+    </aside>
+    <main>
+      <header class="topbar"><div class="breadcrumb">ELECTRICAL DRIVES <span>/</span> THERMAL MONITORING</div><div class="data-badge"><span></span> MEASURED PMSM DATA</div></header>
+      <section class="page-heading"><div><div class="eyebrow">VIRTUAL THERMAL SENSOR</div><h1>See the heat inside.</h1><p>A neural view of motor temperatures, even when measurements disappear.</p></div><button class="button-secondary" id="export-report">Export experiment <span>↓</span></button></section>
+      <nav class="tabs" aria-label="Application views"><button class="tab active" data-tab="replay">Thermal replay</button><button class="tab" data-tab="benchmarks">Measured benchmarks</button><button class="tab" data-tab="method">How it works</button></nav>
+      <div id="status" class="status" role="status"><span id="status-text">Loading the trained neural models…</span><div class="progress-track"><div id="progress"></div></div></div>
+      <div id="error" class="error" role="alert" hidden></div>
+      <section id="view-replay" class="view">
+        <div class="kpi-grid">
+          <article class="kpi"><div class="kpi-label">ESTIMATED TEMPERATURE <span class="tag">NEURAL</span></div><div class="kpi-value" id="kpi-temp">—<small> °C</small></div><div class="kpi-caption" id="kpi-component">Rotor magnet</div><div class="sparkline" id="sparkline"></div></article>
+          <article class="kpi"><div class="kpi-label">MEASURED REFERENCE</div><div class="kpi-value" id="kpi-measured">—<small> °C</small></div><div class="kpi-caption">Evaluation only · excluded from model inputs</div></article>
+          <article class="kpi"><div class="kpi-label">UPPER TEMPERATURE ESTIMATE</div><div class="kpi-value" id="kpi-upper">—<small> °C</small></div><div class="kpi-caption">Empirically calibrated · can miss under shift</div></article>
+          <article class="kpi"><div class="kpi-label">ADVISORY TORQUE MULTIPLIER</div><div class="kpi-value" id="kpi-torque">—<small> %</small></div><div class="kpi-caption">Illustrative settings · replay temperatures unchanged</div></article>
+        </div>
+        <div class="replay-grid">
+          <article class="panel motor-panel"><div class="panel-heading"><h2>Inside the motor</h2><span id="motor-status" class="mini-badge">ESTIMATED</span></div>
+            <div class="motor-visual"><svg id="motor" viewBox="0 0 320 280" role="img" aria-label="Schematic of rotor magnet and stator component temperatures">
+              <defs><linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#edf2f4"/><stop offset="1" stop-color="#cbd8df"/></linearGradient></defs>
+              <circle cx="160" cy="136" r="108" fill="#edf3f5"/><circle cx="160" cy="136" r="95" fill="url(#metal)" stroke="#b6c9d3" stroke-width="2"/>
+              <circle id="heat-yoke" cx="160" cy="136" r="84" fill="#7cadb5"/>
+              <circle cx="160" cy="136" r="68" fill="#f8fafb"/>
+              <g id="heat-winding" fill="#c68d62"><rect x="148" y="58" width="24" height="41" rx="7"/><rect x="148" y="173" width="24" height="41" rx="7"/><rect x="82" y="124" width="41" height="24" rx="7"/><rect x="197" y="124" width="41" height="24" rx="7"/><rect x="106" y="76" width="24" height="41" rx="7" transform="rotate(-45 118 96)"/><rect x="190" y="76" width="24" height="41" rx="7" transform="rotate(45 202 96)"/><rect x="106" y="157" width="24" height="41" rx="7" transform="rotate(45 118 177)"/><rect x="190" y="157" width="24" height="41" rx="7" transform="rotate(-45 202 177)"/></g>
+              <circle id="heat-tooth" cx="160" cy="136" r="50" fill="#72a7b0"/><circle cx="160" cy="136" r="40" fill="#e4edf0"/>
+              <circle id="heat-pm" cx="160" cy="136" r="32" fill="#298b91"/><circle cx="160" cy="136" r="13" fill="#e9f0f2" stroke="#fff" stroke-width="3"/>
+              <path d="M160 115v8M160 149v8M139 136h8M173 136h8" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>
+              <text x="160" y="268" text-anchor="middle" fill="#7f919e" font-size="10" letter-spacing="1.2">COMPONENT SCHEMATIC · NOT A SPATIAL HEATMAP</text>
+            </svg></div>
+            <div class="component-list" id="component-list"></div>
+            <div class="heat-legend"><span>20 °C</span><div></div><span>140 °C</span></div>
+          </article>
+          <article class="panel chart-panel"><div class="panel-heading"><div><h2>Thermal response</h2><p id="chart-subtitle">Measured and estimated temperatures</p></div><button id="focus" class="small-button">Focus event</button></div>
+            <div class="component-tabs" id="component-tabs"></div>
+            <div class="plot-wrap"><canvas id="chart" aria-label="Measured, baseline, neural, and upper-bound temperature curves" role="img"></canvas><div class="chart-empty" id="chart-empty">Preparing measured replay…</div></div>
+            <div class="chart-legend"><span><i class="legend-line truth"></i>Measured</span><span><i class="legend-line neural"></i>Fault-trained neural</span><span><i class="legend-line baseline"></i>Clean-trained baseline</span><span><i class="legend-line upper"></i>Upper estimate</span><span><i class="legend-box"></i>Injected event</span></div>
+            <div class="playback"><button id="play" class="play-button" aria-label="Play measured replay">▶</button><input id="timeline" type="range" min="0" max="100" value="0" aria-label="Replay position"><output id="clock">00:00 / 00:00</output><select id="speed" aria-label="Replay speed"><option value="4">4×</option><option value="20" selected>20×</option><option value="60">60×</option></select></div>
+          </article>
+        </div>
+        <div class="bottom-grid"><article class="panel"><div class="panel-heading"><h2>Experiment evidence</h2><button class="text-button" id="export-csv">Export CSV ↓</button></div><div class="evidence-grid"><div><span>Neural MAE</span><strong id="score-mae">—</strong></div><div><span>Baseline MAE</span><strong id="score-baseline">—</strong></div><div><span>95th percentile underestimation</span><strong id="score-under">—</strong></div><div><span>Empirical upper coverage</span><strong id="score-coverage">—</strong></div></div><p class="fine-print">Current component, entire selected profile. A replay is one example; use the benchmark tab for the complete held-out test set.</p></article>
+          <article class="panel"><div class="panel-heading"><h2>Signal availability</h2><span id="fault-badge" class="mini-badge">HEALTHY</span></div><div id="sensor-list" class="sensor-list"></div><p class="fine-print" id="fault-note">Known dropouts receive a missing-data flag. Silent drift and stuck readings do not.</p></article></div>
+        <details class="advisory-settings"><summary>Illustrative advisory settings</summary><p>These are demonstration thresholds, not manufacturer motor ratings. The minimum multiplier across all components supplies the advice. No command is sent to a motor.</p><div class="threshold-grid" id="thresholds"></div></details>
+      </section>
+      <section id="view-benchmarks" class="view" hidden><div class="section-intro"><h2>Results from complete held-out profiles</h2><p>Measured temperatures, disjoint profile IDs, frozen preprocessing, and independent calibration. Values below come from the exported Python evaluation, not the currently selected replay.</p></div><div class="panel"><div class="panel-heading"><h2>Neural model and baseline</h2><select id="benchmark-scenario" aria-label="Benchmark scenario"><option value="clean">Healthy signals</option><option value="dropout">Single-channel dropout</option><option value="combined">Two-channel dropout</option><option value="bias">Silent drift</option><option value="stuck">Stuck coolant reading</option></select></div><div class="table-scroll"><table><thead><tr><th>Component</th><th>Baseline MAE</th><th>Ensemble MAE</th><th>Neural RMSE</th><th>P95 underest.</th><th>Upper coverage</th></tr></thead><tbody id="benchmark-body"></tbody></table></div><p class="fine-print">Macro-averaged across test profiles. Faults last 120 s at 45% of a profile. Dropout results average coolant and q-axis voltage cases. Cold-start errors remain included.</p></div><div class="method-grid"><article class="panel"><h2>Data separation</h2><div id="split-info"></div></article><article class="panel"><h2>What the result supports</h2><p>Same-motor thermal estimation under replayed input faults. It does not establish cross-motor generalization, certified motor protection, or closed-loop cooling improvements.</p><p>Empirical upper bounds use a separate calibration set. Under drift or unfamiliar conditions, coverage can fall below the calibration target.</p></article></div></section>
+      <section id="view-method" class="view" hidden><div class="section-intro"><h2>A small deep network with thermal memory</h2><p>The deadline prototype uses first-order history filters inspired by thermal time constants and two learned hidden layers. It does not claim to reproduce the full proposed thermal neural network.</p></div><div class="pipeline"><div><b>01</b><strong>7 measured inputs</strong><span>Currents, voltages, speed, coolant, ambient</span></div><div><b>02</b><strong>Causal thermal history</strong><span>10, 60, 300, and 900 s filters; mask and age</span></div><div><b>03</b><strong>Deep neural ensemble</strong><span>49 inputs · 96 and 64 hidden units · 4 outputs</span></div><div><b>04</b><strong>Temperatures and bounds</strong><span>Three trained models, separate residual calibration</span></div></div><div class="method-grid"><article class="panel"><h2>Learned from measured motor data</h2><p>Electric Motor Temperature, Paderborn University. The source contains 1,330,816 rows across 69 sessions at 2 Hz. This demo subsamples to 2 s for thermal replay. Internal temperatures and measured torque never enter the estimator.</p><p>The models learn temperature rise over ambient. History filters and fault handling use only present and past inputs. Each profile begins with fresh history; unknown hot starts can produce large errors.</p><a href="https://www.kaggle.com/datasets/wkirgsn/electric-motor-temperature" target="_blank" rel="noreferrer">Dataset and attribution ↗</a></article><article class="panel"><h2>What a sensor failure means here</h2><p>A reported dropout masks a measurement and provides its age. The model holds the last value for 20 s, then uses a training-derived fallback. Robust models saw similar faults during training.</p><p>Silent drift and stuck readings get no oracle flag. These are stress tests; the application does not claim to diagnose every silent fault.</p><p>Data samples are distributed under CC BY-SA 4.0. This is an academic software demonstration.</p></article></div></section>
+      <footer>THERMOGUARD MOTOR <span>Measured-data prototype · Neural estimates · Advisory replay</span><span id="model-info">Loading model…</span></footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body></html>
